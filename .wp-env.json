@@ -1,0 +1,33 @@
+{
+  "core": null,
+  "phpVersion": "8.2",
+  "plugins": [
+    "https://github.com/fairpm/fair-plugin/archive/refs/heads/main.zip"
+  ],
+  "themes": [],
+  "config": {
+    "WP_DEBUG": true,
+    "WP_DEBUG_LOG": true,
+    "WP_DEBUG_DISPLAY": false,
+    "SCRIPT_DEBUG": true,
+    "ASPIRECLOUD_API_URL": "http://aspirecloud:80"
+  },
+  "port": 8888,
+  "lifecycleScripts": {
+    "afterStart": "bash scripts/wp-env-after-start.sh"
+  },
+  "env": {
+    "development": {
+      "port": 8888,
+      "config": {
+        "ASPIRECLOUD_API_URL": "http://aspirecloud:80"
+      }
+    },
+    "tests": {
+      "port": 8889,
+      "config": {
+        "ASPIRECLOUD_API_URL": "http://aspirecloud:80"
+      }
+    }
+  }
+}

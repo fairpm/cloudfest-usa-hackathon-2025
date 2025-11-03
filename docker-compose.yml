@@ -1,0 +1,154 @@
+services:
+  # Traefik Reverse Proxy with SSL
+  traefik:
+    image: traefik:v2.10
+    container_name: cloudfest-traefik
+    restart: unless-stopped
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--providers.file.directory=/etc/traefik/dynamic"
+      - "--providers.file.watch=true"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8090:8080"  # Traefik dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/certs:/etc/traefik/certs:ro
+      - ./traefik/dynamic:/etc/traefik/dynamic:ro
+    networks:
+      - cloudfest-network
+    labels:
+      - "traefik.enable=true"
+
+  # AspireCloud PostgreSQL Database
+  aspirecloud-db:
+    image: postgres:16-alpine
+    container_name: cloudfest-aspirecloud-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: aspirecloud
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - aspirecloud_db_data:/var/lib/postgresql/data
+      - ./snapshots:/snapshots:ro
+    networks:
+      - cloudfest-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # AspireCloud Application
+  aspirecloud:
+    image: ghcr.io/aspirepress/aspirecloud:latest
+    container_name: cloudfest-aspirecloud
+    restart: unless-stopped
+    depends_on:
+      aspirecloud-db:
+        condition: service_healthy
+    environment:
+      APP_ENV: local
+      APP_DEBUG: true
+      APP_URL: http://localhost:8099  # Port-based access (browser)
+      APP_KEY: base64:18keOV412ag8Yw3NdpWs2AMxL/f7W39nA+4rsv4ron8=  # Generated for local dev
+      DB_CONNECTION: pgsql
+      DB_HOST: aspirecloud-db
+      DB_PORT: 5432
+      DB_DATABASE: aspirecloud
+      DB_USERNAME: postgres
+      DB_PASSWORD: password
+      CACHE_DRIVER: redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      # HTTP Client Timeouts (in seconds)
+      HTTP_CLIENT_TIMEOUT: 120
+      HTTP_CLIENT_CONNECT_TIMEOUT: 30
+    ports:
+      - "8099:80"  # AspireCloud API - access at http://localhost:8099
+    networks:
+      - cloudfest-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.aspirecloud.rule=Host(`api.aspiredev.local`)"
+      - "traefik.http.routers.aspirecloud.entrypoints=websecure"
+      - "traefik.http.routers.aspirecloud.tls=true"
+      - "traefik.http.services.aspirecloud.loadbalancer.server.port=80"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80/ || exit 1"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+  # Redis Cache (used by both AspireCloud and WordPress)
+  redis:
+    image: redis:7-alpine
+    container_name: cloudfest-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - cloudfest-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Mailhog for Email Testing
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: cloudfest-mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025"  # SMTP port
+      - "8025:8025"  # Web UI
+    networks:
+      - cloudfest-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mailhog.rule=Host(`mail.aspiredev.local`)"
+      - "traefik.http.routers.mailhog.entrypoints=websecure"
+      - "traefik.http.routers.mailhog.tls=true"
+      - "traefik.http.services.mailhog.loadbalancer.server.port=8025"
+
+  # Adminer for Database Management
+  adminer:
+    image: adminer:latest
+    container_name: cloudfest-adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: aspirecloud-db
+      ADMINER_DESIGN: pepa-linha
+    networks:
+      - cloudfest-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.adminer.rule=Host(`db.aspiredev.local`)"
+      - "traefik.http.routers.adminer.entrypoints=websecure"
+      - "traefik.http.routers.adminer.tls=true"
+      - "traefik.http.services.adminer.loadbalancer.server.port=8080"
+
+networks:
+  cloudfest-network:
+    driver: bridge
+    name: cloudfest-network
+
+volumes:
+  aspirecloud_db_data:
+    driver: local
+  redis_data:
+    driver: local

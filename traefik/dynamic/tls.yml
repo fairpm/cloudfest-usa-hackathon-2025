@@ -1,0 +1,9 @@
+tls:
+  certificates:
+    - certFile: /etc/traefik/certs/aspiredev.local.pem
+      keyFile: /etc/traefik/certs/aspiredev.local-key.pem
+  stores:
+    default:
+      defaultCertificate:
+        certFile: /etc/traefik/certs/aspiredev.local.pem
+        keyFile: /etc/traefik/certs/aspiredev.local-key.pem
