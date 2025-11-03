@@ -11,16 +11,14 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-// Log that mu-plugin is loading (FIRST LINE after ABSPATH check)
-error_log('[FAIR Config] mu-plugin loaded at ' . date('Y-m-d H:i:s'));
-
 // Configure FAIR to use local AspireCloud via Docker network
 // WordPress can access AspireCloud directly by container name
 // This constant is checked by FAIR\Default_Repo\get_default_repo_domain()
 // Format: just the domain/hostname without protocol or port
 // FAIR will add the protocol and path
+// NOTE: Port 80 is implicit, don't include it to avoid wp_http_validate_url() rejection
 if (!defined('FAIR_DEFAULT_REPO_DOMAIN')) {
-    define('FAIR_DEFAULT_REPO_DOMAIN', 'aspirecloud:80');
+    define('FAIR_DEFAULT_REPO_DOMAIN', 'aspirecloud');
 }
 
 // Enable FAIR for all package types
@@ -33,63 +31,68 @@ add_filter('fair_debug_mode', function() {
     return defined('WP_DEBUG') && WP_DEBUG;
 }, 1);
 
-// Force HTTP for local AspireCloud requests (AspireCloud doesn't support HTTPS)
-// This filter runs at high priority to catch requests AFTER FAIR has modified them
+// Configure HTTP requests for local AspireCloud
+add_filter('http_request_args', function($args, $url) {
+    // Configure requests to local AspireCloud
+    if (strpos($url, 'aspirecloud') !== false) {
+        $args['sslverify'] = false;
+        $args['timeout'] = 30;
+        $args['redirection'] = 10;  // Ensure redirects are followed (AspireCloud redirects to downloads.wordpress.org)
+        $args['reject_unsafe_urls'] = false;  // CRITICAL: Bypass wp_http_validate_url() which can't resolve Docker hostnames
+    }
+
+    return $args;
+}, 10, 2);
+
+// Rewrite HTTPS AspireCloud URLs to HTTP before the request is made
 add_filter('pre_http_request', function($preempt, $args, $url) {
-    // Log all API requests for debugging
-    if (strpos($url, 'api.wordpress.org') !== false || strpos($url, 'aspirecloud') !== false) {
-        error_log('[FAIR Config] pre_http_request (priority 999): ' . $url);
+    static $in_filter = false;
+
+    // Prevent infinite recursion
+    if ($in_filter) {
+        return $preempt;
     }
 
     // Only modify requests to our local AspireCloud instance that use HTTPS
-    if (strpos($url, 'https://aspirecloud:80') === 0) {
+    if (strpos($url, 'https://aspirecloud') === 0) {
         // Fix the URL to use HTTP
-        $fixed_url = str_replace('https://aspirecloud:80', 'http://aspirecloud:80', $url);
-        error_log('[FAIR Config] FIXED HTTPS->HTTP: ' . $fixed_url);
+        $fixed_url = str_replace('https://aspirecloud', 'http://aspirecloud', $url);
+
+        // Set flag to prevent recursion
+        $in_filter = true;
 
         // Make the request with the fixed URL
-        return wp_remote_request($fixed_url, $args);
+        $response = wp_remote_request($fixed_url, $args);
+
+        // Reset flag
+        $in_filter = false;
+
+        return $response;
     }
 
     return $preempt;
 }, 999, 3);  // High priority to run after most other filters
 
-// Log FAIR API calls for debugging (runs after plugins are loaded)
-add_action('plugins_loaded', function() {
-    if (defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
-        add_action('fair_api_request', function($url, $args) {
-            error_log(sprintf(
-                '[FAIR] API Request: %s',
-                $url
-            ));
-        }, 10, 2);
-
-        add_action('fair_api_response', function($response, $url) {
-            if (is_wp_error($response)) {
-                error_log(sprintf(
-                    '[FAIR] API Error: %s - %s',
-                    $url,
-                    $response->get_error_message()
-                ));
-            }
-        }, 10, 2);
-    }
-}, 1);
-
 // Rewrite AspireCloud URLs based on context
-// AspireCloud returns URLs like https://api.aspiredev.local/download/...
-// - download_link: rewrite to http://aspirecloud:80 (server-side access)
+// AspireCloud returns URLs like http://localhost:8099/download/...
+// - download_link: rewrite to http://aspirecloud (server-side access)
 // - icons/banners: rewrite to http://localhost:8099 (browser access)
 add_filter('plugins_api_result', function($result, $action, $args) {
+    if (is_wp_error($result)) {
+        return $result;
+    }
+
     if (!is_object($result)) {
         return $result;
     }
 
     // Fix download_link in plugin information responses (server-side access)
+    // NOTE: Use http://aspirecloud/ (port 80 is default) instead of http://aspirecloud:80/
+    // because WordPress's wp_http_validate_url() rejects URLs with port in hostname
     if (isset($result->download_link)) {
         $result->download_link = str_replace(
-            ['https://api.aspiredev.local', 'http://api.aspiredev.local'],
-            'http://aspirecloud:80',
+            ['https://api.aspiredev.local', 'http://api.aspiredev.local', 'http://localhost:8099'],
+            'http://aspirecloud',
             $result->download_link
         );
     }
@@ -99,8 +102,8 @@ add_filter('plugins_api_result', function($result, $action, $args) {
         foreach ($result->plugins as &$plugin) {
             if (isset($plugin->download_link)) {
                 $plugin->download_link = str_replace(
-                    ['https://api.aspiredev.local', 'http://api.aspiredev.local'],
-                    'http://aspirecloud:80',
+                    ['https://api.aspiredev.local', 'http://api.aspiredev.local', 'http://localhost:8099'],
+                    'http://aspirecloud',
                     $plugin->download_link
                 );
             }
@@ -151,7 +154,7 @@ add_action('admin_notices', function() {
     $screen = get_current_screen();
     if ($screen && $screen->id === 'dashboard') {
         printf(
-            '<div class="notice notice-info"><p><strong>CloudFest Hackathon:</strong> FAIR plugin is configured to use local AspireCloud at <code>http://aspirecloud:80</code> (accessible from your browser at <a href="http://localhost:8099" target="_blank">http://localhost:8099</a>)</p></div>'
+            '<div class="notice notice-info"><p><strong>CloudFest Hackathon:</strong> FAIR plugin is configured to use local AspireCloud at <code>http://aspirecloud</code> (accessible from your browser at <a href="http://localhost:8099" target="_blank">http://localhost:8099</a>)</p></div>'
         );
     }
 });

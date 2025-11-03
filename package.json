@@ -9,6 +9,8 @@
     "dev:reset": "bash scripts/reset-all.sh",
     "dev:logs": "docker-compose logs -f",
     "db:import": "bash scripts/import-database.sh",
+    "aspirecloud:update": "docker pull ghcr.io/aspirepress/aspirecloud:latest && docker-compose up -d --force-recreate aspirecloud && bash scripts/init-aspirecloud.sh",
+    "aspirecloud:init": "bash scripts/init-aspirecloud.sh",
     "wp-env": "wp-env",
     "wp:start": "wp-env start",
     "wp:stop": "wp-env stop",
