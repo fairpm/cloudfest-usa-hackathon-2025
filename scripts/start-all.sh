@@ -24,9 +24,9 @@ if [ ! -f "$PROJECT_DIR/traefik/certs/aspiredev.local.pem" ]; then
 fi
 
 # Detect docker compose command
-if docker compose version &> /dev/null; then
+if docker compose version &>/dev/null; then
     DOCKER_COMPOSE="docker compose"
-elif docker-compose --version &> /dev/null; then
+elif docker-compose --version &>/dev/null; then
     DOCKER_COMPOSE="docker-compose"
 else
     echo -e "${RED}Error: Neither 'docker compose' nor 'docker-compose' found${NC}"
@@ -132,6 +132,7 @@ if [ -d "$PROJECT_DIR/fair-plugin" ] && [ -n "$(ls -A "$PROJECT_DIR/fair-plugin"
     bash "$SCRIPT_DIR/init-fair-plugin.sh"
     echo ""
 fi
+
 # Start WordPress environment
 echo -e "${BLUE}Starting WordPress environment...${NC}"
 npm run wp:start
