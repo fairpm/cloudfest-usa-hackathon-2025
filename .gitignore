@@ -22,25 +22,14 @@ wp-admin/
 wp-includes/
 
 # ===================================
-<<<<<<< Updated upstream
-=======
-<<<<<<< Updated upstream
-=======
->>>>>>> Stashed changes
 # WordPress Plugins (Development)
 # ===================================
 # Local clones of plugins for development
 # Each developer should clone these independently
 plugins/fair/
-<<<<<<< Updated upstream
-
-# ===================================
-=======
 plugins/cloudfest-fair-frontend-team/
 
 # ===================================
->>>>>>> Stashed changes
->>>>>>> Stashed changes
 # Docker & Services
 # ===================================
 # Docker override files (for local customization)

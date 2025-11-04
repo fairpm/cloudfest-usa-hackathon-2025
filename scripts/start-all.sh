@@ -55,31 +55,30 @@ else
     echo -e "${GREEN}Database already populated.${NC}"
 fi
 
-# Check if required directories exist
-echo -e "${BLUE}Checking required directories...${NC}"
-
-if [ ! -d "$PROJECT_DIR/aspirecloud" ]; then
-    echo -e "${RED}ERROR: ./aspirecloud directory not found${NC}"
-    echo "Please clone the AspireCloud repository:"
-    echo "  git clone https://github.com/aspirepress/AspireCloud.git aspirecloud"
-    exit 1
+# Check and clone AspireCloud if needed
+echo -e "${BLUE}Checking AspireCloud repository...${NC}"
+if [ ! -d "$PROJECT_DIR/aspirecloud" ] || [ -z "$(ls -A "$PROJECT_DIR/aspirecloud" 2>/dev/null)" ]; then
+    echo -e "${YELLOW}AspireCloud not found. Cloning from GitHub...${NC}"
+    # Remove empty directory if it exists
+    [ -d "$PROJECT_DIR/aspirecloud" ] && rm -rf "$PROJECT_DIR/aspirecloud"
+    git clone https://github.com/aspirepress/AspireCloud.git "$PROJECT_DIR/aspirecloud"
+    echo -e "${GREEN}AspireCloud cloned successfully.${NC}"
+else
+    echo -e "${GREEN}✓ AspireCloud repository found${NC}"
 fi
+echo ""
 
-if [ ! -d "$PROJECT_DIR/cve-labeller" ]; then
-    echo -e "${RED}ERROR: ./cve-labeller directory not found${NC}"
-    echo "Please clone the CVE Labeller repository:"
-    echo "  git clone git@github.com:fairpm/cve-labeller.git cve-labeller"
-    exit 1
+# Check and clone CVE Labeller if needed
+echo -e "${BLUE}Checking CVE Labeller repository...${NC}"
+if [ ! -d "$PROJECT_DIR/cve-labeller" ] || [ -z "$(ls -A "$PROJECT_DIR/cve-labeller" 2>/dev/null)" ]; then
+    echo -e "${YELLOW}CVE Labeller not found.${NC}"
+    echo -e "${YELLOW}NOTE: CVE Labeller repository URL needs to be configured.${NC}"
+    echo -e "${YELLOW}Skipping CVE Labeller initialization...${NC}"
+    # Remove empty directory if it exists
+    [ -d "$PROJECT_DIR/cve-labeller" ] && rm -rf "$PROJECT_DIR/cve-labeller"
+else
+    echo -e "${GREEN}✓ CVE Labeller repository found${NC}"
 fi
-
-if [ ! -d "$PROJECT_DIR/fair-plugin" ]; then
-    echo -e "${YELLOW}WARNING: ./fair-plugin directory not found${NC}"
-    echo "Clone it to enable local plugin development:"
-    echo "  git clone https://github.com/fairpm/fair-plugin.git fair-plugin"
-    echo ""
-fi
-
-echo -e "${GREEN}✓ Required directories found${NC}"
 echo ""
 
 # Initialize AspireCloud
@@ -87,17 +86,23 @@ echo -e "${BLUE}Initializing AspireCloud application...${NC}"
 bash "$SCRIPT_DIR/init-aspirecloud.sh"
 echo ""
 
-# Wait for CVE Labeller database to be ready
-echo -e "${BLUE}Waiting for CVE Labeller database to be ready...${NC}"
-timeout 60 bash -c 'until docker exec cloudfest-cve-labeller-db pg_isready -U postgres > /dev/null 2>&1; do sleep 2; done' || {
-    echo -e "${RED}CVE Labeller database failed to start${NC}"
-    exit 1
-}
+# Initialize CVE Labeller if directory exists and is not empty
+if [ -d "$PROJECT_DIR/cve-labeller" ] && [ -n "$(ls -A "$PROJECT_DIR/cve-labeller" 2>/dev/null)" ]; then
+    # Wait for CVE Labeller database to be ready
+    echo -e "${BLUE}Waiting for CVE Labeller database to be ready...${NC}"
+    timeout 60 bash -c 'until docker exec cloudfest-cve-labeller-db pg_isready -U postgres > /dev/null 2>&1; do sleep 2; done' || {
+        echo -e "${RED}CVE Labeller database failed to start${NC}"
+        exit 1
+    }
 
-# Initialize CVE Labeller
-echo -e "${BLUE}Initializing CVE Labeller application...${NC}"
-bash "$SCRIPT_DIR/init-cve-labeller.sh"
-echo ""
+    # Initialize CVE Labeller
+    echo -e "${BLUE}Initializing CVE Labeller application...${NC}"
+    bash "$SCRIPT_DIR/init-cve-labeller.sh"
+    echo ""
+else
+    echo -e "${YELLOW}CVE Labeller not available, skipping initialization...${NC}"
+    echo ""
+fi
 
 # Check if FAIR plugin exists (for wp-env)
 if [ ! -d "$PROJECT_DIR/plugins/fair" ] || [ -z "$(ls -A "$PROJECT_DIR/plugins/fair" 2>/dev/null)" ]; then
@@ -106,7 +111,7 @@ if [ ! -d "$PROJECT_DIR/plugins/fair" ] || [ -z "$(ls -A "$PROJECT_DIR/plugins/f
     git clone https://github.com/fairpm/fair-plugin.git "$PROJECT_DIR/plugins/fair"
     echo -e "${GREEN}FAIR plugin cloned successfully.${NC}"
 else
-    echo -e "${GREEN}FAIR plugin found.${NC}"
+    echo -e "${GREEN}✓ FAIR plugin found${NC}"
 fi
 echo ""
 
@@ -117,12 +122,12 @@ if [ ! -d "$PROJECT_DIR/plugins/cloudfest-fair-frontend-team" ] || [ -z "$(ls -A
     git clone https://github.com/CesarAyalaDev/cloudfest-fair-frontend-team.git "$PROJECT_DIR/plugins/cloudfest-fair-frontend-team"
     echo -e "${GREEN}CloudFest FAIR Frontend Team plugin cloned successfully.${NC}"
 else
-    echo -e "${GREEN}CloudFest FAIR Frontend Team plugin found.${NC}"
+    echo -e "${GREEN}✓ CloudFest FAIR Frontend Team plugin found${NC}"
 fi
 echo ""
 
 # Initialize FAIR Plugin if it exists (separate optional directory)
-if [ -d "$PROJECT_DIR/fair-plugin" ]; then
+if [ -d "$PROJECT_DIR/fair-plugin" ] && [ -n "$(ls -A "$PROJECT_DIR/fair-plugin" 2>/dev/null)" ]; then
     echo -e "${BLUE}Initializing FAIR Plugin...${NC}"
     bash "$SCRIPT_DIR/init-fair-plugin.sh"
     echo ""
