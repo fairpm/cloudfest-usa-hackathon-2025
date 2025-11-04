@@ -8,15 +8,19 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+LOG_FILE="$PROJECT_DIR/wp-env-after-start.log"
 
-echo "[afterStart] Running wp-env afterStart tasks..."
+# Log to both stdout and file
+exec > >(tee -a "$LOG_FILE") 2>&1
+
+echo "[afterStart] Running wp-env afterStart tasks at $(date)..."
 
 # Wait a moment for containers to fully initialize
 sleep 2
 
 # Get WordPress container IDs
 echo "[afterStart] Finding WordPress containers..."
-WORDPRESS_DEV=$(docker ps -qf 'name=.*-wordpress-1' | grep -v tests | head -1)
+WORDPRESS_DEV=$(docker ps --filter 'name=.*-wordpress-1' --format '{{.Names}} {{.ID}}' | grep -v 'tests-wordpress' | head -1 | awk '{print $2}')
 WORDPRESS_TEST=$(docker ps -qf 'name=.*-tests-wordpress-1' | head -1)
 
 if [ -z "$WORDPRESS_DEV" ]; then

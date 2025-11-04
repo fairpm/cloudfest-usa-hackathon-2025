@@ -2,7 +2,7 @@
   "core": null,
   "phpVersion": "8.2",
   "plugins": [
-    "https://github.com/fairpm/fair-plugin/archive/refs/heads/main.zip"
+    "./plugins/fair"
   ],
   "themes": [],
   "config": {
