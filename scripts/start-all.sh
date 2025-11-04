@@ -23,10 +23,20 @@ if [ ! -f "$PROJECT_DIR/traefik/certs/aspiredev.local.pem" ]; then
     echo ""
 fi
 
+# Detect docker compose command
+if docker compose version &> /dev/null; then
+    DOCKER_COMPOSE="docker compose"
+elif docker-compose --version &> /dev/null; then
+    DOCKER_COMPOSE="docker-compose"
+else
+    echo -e "${RED}Error: Neither 'docker compose' nor 'docker-compose' found${NC}"
+    exit 1
+fi
+
 # Start docker-compose services
 echo -e "${BLUE}Starting infrastructure services...${NC}"
 cd "$PROJECT_DIR"
-docker-compose up -d
+$DOCKER_COMPOSE up -d
 
 # Wait for database to be ready
 echo -e "${BLUE}Waiting for database to be ready...${NC}"
