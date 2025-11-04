@@ -22,6 +22,13 @@ wp-admin/
 wp-includes/
 
 # ===================================
+# WordPress Plugins (Development)
+# ===================================
+# Local clones of plugins for development
+# Each developer should clone these independently
+plugins/fair/
+
+# ===================================
 # Docker & Services
 # ===================================
 # Docker override files (for local customization)
