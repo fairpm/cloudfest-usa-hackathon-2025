@@ -1,9 +1,9 @@
 # **FAIR Package Manager: Developer Integration Guide**
 
-**CloudFest USA – November 4, 2025**  
-📍 *Miami Marriott Biscayne Bay*  
-👥 *20–25 Selected Participants*  
-🔗 [https://www.cloudfest.com/usa/hackathon/](https://www.cloudfest.com/usa/hackathon/)  
+**CloudFest USA – November 4, 2025**
+📍 *Miami Marriott Biscayne Bay*
+👥 *20–25 Selected Participants*
+🔗 [https://www.cloudfest.com/usa/hackathon/](https://www.cloudfest.com/usa/hackathon/)
 💰Thanks to the exclusive Hackathon sponsor, **Patchstack!**
 
 ---
@@ -18,6 +18,16 @@ FAIR (Federated And Independent Repositories) uses decentralized identifiers (DI
 * **Ed25519** - Package signature verification
 * **JSON-LD** - Package metadata format
 * **REST APIs** - Package distribution endpoints
+
+---
+
+## **⚠️ Code Signoff**
+
+If committing code to any FAIR Github repository, note that, you need to sign off on your commits by adding this to your commit messages:
+
+`Signed-off-by: Author Name <authoremail@example.com>`
+
+This is *not* a cryptographic signature. If you are unfamiliar with code signoff, please see [these resources](https://github.com/fairpm/tsc/blob/main/contributing.md#code-signoff) or ask a fellow dev for help.
 
 ---
 
@@ -330,4 +340,3 @@ version_compare('1.0.3', '1.0.3', '=')  // true (current)
 ---
 
 **Questions?** Check documentation at [`https://fair.pm`](https://fair.pm) or GitHub repositories listed above.
-
