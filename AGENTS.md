@@ -1,3 +1,22 @@
+<!-- OPENSPEC:START -->
+# OpenSpec Instructions
+
+These instructions are for AI assistants working in this project.
+
+Always open `@/openspec/AGENTS.md` when the request:
+- Mentions planning or proposals (words like proposal, spec, change, plan)
+- Introduces new capabilities, breaking changes, architecture shifts, or big performance/security work
+- Sounds ambiguous and you need the authoritative spec before coding
+
+Use `@/openspec/AGENTS.md` to learn:
+- How to create and apply change proposals
+- Spec format and conventions
+- Project structure and guidelines
+
+Keep this managed block so 'openspec update' can refresh the instructions.
+
+<!-- OPENSPEC:END -->
+
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
@@ -38,6 +57,19 @@ The FAIR plugin is auto-configured via `config/fair-config.php`, which is mapped
 - Changes to `config/fair-config.php` require WordPress restart: `npm run wp:stop && npm run wp:start`
 - The FAIR plugin source is in `plugins/fair/` and changes require WordPress restart
 - See `docs/contributing-to-fair.md` for information on contributing changes back to FAIR
+
+### CloudFest FAIR Frontend Team Plugin
+
+The CloudFest FAIR Frontend Team plugin is automatically cloned from GitHub if not present when running `npm run dev:start`. The plugin source lives in `plugins/cloudfest-fair-frontend-team/` (gitignored) and is loaded directly by wp-env.
+
+This plugin provides:
+- Frontend UI for the FAIR Security Assistant
+- Integration with PatchStack vulnerability data
+- Security policy management interface
+
+**Important**:
+- The plugin source is in `plugins/cloudfest-fair-frontend-team/` and changes require WordPress restart
+- Repository: https://github.com/CesarAyalaDev/cloudfest-fair-frontend-team
 
 ### Network Architecture
 
