@@ -24,9 +24,9 @@ if [ ! -f "$PROJECT_DIR/traefik/certs/aspiredev.local.pem" ]; then
 fi
 
 # Detect docker compose command
-if docker compose version &> /dev/null; then
+if docker compose version &>/dev/null; then
     DOCKER_COMPOSE="docker compose"
-elif docker-compose --version &> /dev/null; then
+elif docker-compose --version &>/dev/null; then
     DOCKER_COMPOSE="docker-compose"
 else
     echo -e "${RED}Error: Neither 'docker compose' nor 'docker-compose' found${NC}"
@@ -87,11 +87,6 @@ echo -e "${BLUE}Initializing AspireCloud application...${NC}"
 bash "$SCRIPT_DIR/init-aspirecloud.sh"
 echo ""
 
-<<<<<<< Updated upstream
-=======
-<<<<<<< Updated upstream
-=======
->>>>>>> Stashed changes
 # Wait for CVE Labeller database to be ready
 echo -e "${BLUE}Waiting for CVE Labeller database to be ready...${NC}"
 timeout 60 bash -c 'until docker exec cloudfest-cve-labeller-db pg_isready -U postgres > /dev/null 2>&1; do sleep 2; done' || {
@@ -115,8 +110,6 @@ else
 fi
 echo ""
 
-<<<<<<< Updated upstream
-=======
 # Check if frontend team plugin exists (for wp-env)
 if [ ! -d "$PROJECT_DIR/plugins/cloudfest-fair-frontend-team" ] || [ -z "$(ls -A "$PROJECT_DIR/plugins/cloudfest-fair-frontend-team" 2>/dev/null)" ]; then
     echo -e "${YELLOW}CloudFest FAIR Frontend Team plugin not found. Cloning from GitHub...${NC}"
@@ -128,7 +121,6 @@ else
 fi
 echo ""
 
->>>>>>> Stashed changes
 # Initialize FAIR Plugin if it exists (separate optional directory)
 if [ -d "$PROJECT_DIR/fair-plugin" ]; then
     echo -e "${BLUE}Initializing FAIR Plugin...${NC}"
@@ -136,10 +128,6 @@ if [ -d "$PROJECT_DIR/fair-plugin" ]; then
     echo ""
 fi
 
-<<<<<<< Updated upstream
-=======
->>>>>>> Stashed changes
->>>>>>> Stashed changes
 # Start WordPress environment
 echo -e "${BLUE}Starting WordPress environment...${NC}"
 npm run wp:start
