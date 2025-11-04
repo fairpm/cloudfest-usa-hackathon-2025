@@ -2,16 +2,8 @@
   "core": null,
   "phpVersion": "8.2",
   "plugins": [
-<<<<<<< Updated upstream
-    "./plugins/fair"
-=======
-<<<<<<< Updated upstream
-    "https://github.com/fairpm/fair-plugin/archive/refs/heads/main.zip"
-=======
     "./plugins/fair",
     "./plugins/cloudfest-fair-frontend-team"
->>>>>>> Stashed changes
->>>>>>> Stashed changes
   ],
   "themes": [],
   "config": {
