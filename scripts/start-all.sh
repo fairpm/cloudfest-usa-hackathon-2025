@@ -99,7 +99,18 @@ echo -e "${BLUE}Initializing CVE Labeller application...${NC}"
 bash "$SCRIPT_DIR/init-cve-labeller.sh"
 echo ""
 
-# Initialize FAIR Plugin if it exists
+# Check if FAIR plugin exists (for wp-env)
+if [ ! -d "$PROJECT_DIR/plugins/fair" ] || [ -z "$(ls -A "$PROJECT_DIR/plugins/fair" 2>/dev/null)" ]; then
+    echo -e "${YELLOW}FAIR plugin not found. Cloning from GitHub...${NC}"
+    mkdir -p "$PROJECT_DIR/plugins"
+    git clone https://github.com/fairpm/fair-plugin.git "$PROJECT_DIR/plugins/fair"
+    echo -e "${GREEN}FAIR plugin cloned successfully.${NC}"
+else
+    echo -e "${GREEN}FAIR plugin found.${NC}"
+fi
+echo ""
+
+# Initialize FAIR Plugin if it exists (separate optional directory)
 if [ -d "$PROJECT_DIR/fair-plugin" ]; then
     echo -e "${BLUE}Initializing FAIR Plugin...${NC}"
     bash "$SCRIPT_DIR/init-fair-plugin.sh"
