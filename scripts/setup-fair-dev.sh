@@ -7,6 +7,10 @@ set -euo pipefail
 # This script helps set up the FAIR plugin for local development and
 # contributions back to the upstream repository.
 #
+# NOTE: The FAIR plugin is automatically cloned when you run 'npm run dev:start'
+#       This script is optional and only needed if you want to set up fork remotes
+#       for contributing changes back to FAIR.
+#
 # Usage:
 #   ./scripts/setup-fair-dev.sh [--fork YOUR_GITHUB_USERNAME]
 #

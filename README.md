@@ -107,6 +107,7 @@ The setup script will automatically:
 - Import the AspireCloud database
 - Build AspireCloud frontend assets
 - Initialize CVE Labeller database
+- Automatically clone FAIR plugin from GitHub if not present
 - Launch WordPress with FAIR plugin pre-installed
 - Configure FAIR to use the local AspireCloud instance
 

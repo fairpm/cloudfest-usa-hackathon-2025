@@ -27,12 +27,17 @@ WordPress containers are automatically connected to the `cloudfest-network` via 
 
 ### FAIR Plugin Configuration
 
+The FAIR plugin is automatically cloned from GitHub if not present when running `npm run dev:start`. The plugin source lives in `plugins/fair/` (gitignored) and is loaded directly by wp-env.
+
 The FAIR plugin is auto-configured via `config/fair-config.php`, which is mapped as a must-use plugin. This file:
 - Points FAIR to the local AspireCloud instance
 - Enables debug logging
 - Configures package update sources
 
-**Important**: Changes to `config/fair-config.php` require WordPress restart: `npm run wp:stop && npm run wp:start`
+**Important**:
+- Changes to `config/fair-config.php` require WordPress restart: `npm run wp:stop && npm run wp:start`
+- The FAIR plugin source is in `plugins/fair/` and changes require WordPress restart
+- See `docs/contributing-to-fair.md` for information on contributing changes back to FAIR
 
 ### Network Architecture
 

@@ -4,7 +4,9 @@ This guide explains how to develop and contribute changes back to the FAIR plugi
 
 ## Development Setup
 
-The FAIR plugin is cloned locally to `plugins/fair/` and loaded directly by wp-env. This gives you full source access for debugging, modifications, and contributions.
+The FAIR plugin is automatically cloned to `plugins/fair/` when you run `npm run dev:start` for the first time. The plugin is then loaded directly by wp-env, giving you full source access for debugging, modifications, and contributions.
+
+**Note**: If you cloned this repo fresh, you don't need to manually clone the FAIR plugin - it will be cloned automatically on first startup.
 
 ### Directory Structure
 
