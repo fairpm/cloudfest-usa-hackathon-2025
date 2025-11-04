@@ -58,8 +58,8 @@ services:
     environment:
       APP_ENV: local
       APP_DEBUG: true
-      APP_URL: http://localhost:8099  # Port-based access (browser)
-      APP_KEY: base64:18keOV412ag8Yw3NdpWs2AMxL/f7W39nA+4rsv4ron8=  # Generated for local dev
+      APP_URL: http://localhost:8099
+      APP_KEY: base64:18keOV412ag8Yw3NdpWs2AMxL/f7W39nA+4rsv4ron8=
       DB_CONNECTION: pgsql
       DB_HOST: aspirecloud-db
       DB_PORT: 5432
@@ -69,11 +69,14 @@ services:
       CACHE_DRIVER: redis
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      # HTTP Client Timeouts (in seconds)
       HTTP_CLIENT_TIMEOUT: 120
       HTTP_CLIENT_CONNECT_TIMEOUT: 30
+      # Node/Yarn configuration
+      NODE_ENV: development
     ports:
-      - "8099:80"  # AspireCloud API - access at http://localhost:8099
+      - "8099:80"
+    volumes:
+      - ./aspirecloud:/app
     networks:
       - cloudfest-network
     labels:
@@ -88,7 +91,77 @@ services:
       timeout: 30s
       retries: 3
 
-  # Redis Cache (used by both AspireCloud and WordPress)
+  # CVE Labeller PostgreSQL Database
+  cve-labeller-db:
+    image: postgres:16-alpine
+    container_name: cloudfest-cve-labeller-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: cve_labeller
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5433:5432"
+    volumes:
+      - cve_labeller_db_data:/var/lib/postgresql/data
+    networks:
+      - cloudfest-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # CVE Labeller Application
+  cve-labeller:
+    image: webdevops/php-nginx:8.2-alpine
+    container_name: cloudfest-cve-labeller
+    restart: unless-stopped
+    depends_on:
+      cve-labeller-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      APP_ENV: local
+      APP_DEBUG: true
+      APP_URL: http://localhost:8199
+      APP_KEY: base64:KRiGrL6HJxOWDCb7WFBGQ2jbZRmDCJGgAdt1lP02IUk=
+      DB_CONNECTION: pgsql
+      DB_HOST: cve-labeller-db
+      DB_PORT: 5432
+      DB_DATABASE: cve_labeller
+      DB_USERNAME: postgres
+      DB_PASSWORD: password
+      CACHE_DRIVER: redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
+      # PHP Configuration
+      WEB_DOCUMENT_ROOT: /app/public
+      PHP_MEMORY_LIMIT: 512M
+      PHP_UPLOAD_MAX_FILESIZE: 64M
+      PHP_POST_MAX_SIZE: 64M
+    ports:
+      - "8199:80"
+    volumes:
+      - ./cve-labeller:/app
+    networks:
+      - cloudfest-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.cve-labeller.rule=Host(`api.cve-labeller.local`)"
+      - "traefik.http.routers.cve-labeller.entrypoints=websecure"
+      - "traefik.http.routers.cve-labeller.tls=true"
+      - "traefik.http.services.cve-labeller.loadbalancer.server.port=80"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80/ || exit 1"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+  # Redis Cache (shared by AspireCloud and CVE Labeller)
   redis:
     image: redis:7-alpine
     container_name: cloudfest-redis
@@ -112,8 +185,8 @@ services:
     container_name: cloudfest-mailhog
     restart: unless-stopped
     ports:
-      - "1025:1025"  # SMTP port
-      - "8025:8025"  # Web UI
+      - "1025:1025"
+      - "8025:8025"
     networks:
       - cloudfest-network
     labels:
@@ -149,6 +222,8 @@ networks:
 
 volumes:
   aspirecloud_db_data:
+    driver: local
+  cve_labeller_db_data:
     driver: local
   redis_data:
     driver: local

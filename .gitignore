@@ -122,3 +122,10 @@ build/
 *.backup
 *.dump
 *.sql.bak
+
+# ===================================
+# Fair Repositories
+# ===================================
+aspirecloud/
+cve-labeller/
+fair-plugin/

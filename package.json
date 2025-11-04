@@ -1,7 +1,7 @@
 {
   "name": "cloudfest-usa-2025-local-env",
   "version": "1.0.0",
-  "description": "Local development environment for CloudFest USA 2025 Hackathon - FAIR, AspireCloud, and PatchStack integration",
+  "description": "Local development environment for CloudFest USA 2025 Hackathon - FAIR, AspireCloud, CVE Labeller, and PatchStack integration",
   "scripts": {
     "setup": "bash scripts/setup-ssl.sh",
     "dev:start": "bash scripts/start-all.sh",
@@ -9,8 +9,12 @@
     "dev:reset": "bash scripts/reset-all.sh",
     "dev:logs": "docker-compose logs -f",
     "db:import": "bash scripts/import-database.sh",
-    "aspirecloud:update": "docker pull ghcr.io/aspirepress/aspirecloud:latest && docker-compose up -d --force-recreate aspirecloud && bash scripts/init-aspirecloud.sh",
     "aspirecloud:init": "bash scripts/init-aspirecloud.sh",
+    "aspirecloud:clear": "docker exec -w /app cloudfest-aspirecloud php artisan optimize:clear",
+    "aspirecloud:update": "docker pull ghcr.io/aspirepress/aspirecloud:latest && docker-compose up -d --force-recreate aspirecloud && bash scripts/init-aspirecloud.sh",
+    "cve-labeller:init": "bash scripts/init-cve-labeller.sh",
+    "cve-labeller:clear": "docker exec -w /app cloudfest-cve-labeller php artisan optimize:clear",
+    "fair-plugin:init": "bash scripts/init-fair-plugin.sh",
     "wp-env": "wp-env",
     "wp:start": "wp-env start",
     "wp:stop": "wp-env stop",
@@ -33,6 +37,7 @@
     "hackathon",
     "fair",
     "aspirecloud",
+    "cve-labeller",
     "patchstack"
   ],
   "author": "Alain Schlesser",
