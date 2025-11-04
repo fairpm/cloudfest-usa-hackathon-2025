@@ -55,10 +55,56 @@ else
     echo -e "${GREEN}Database already populated.${NC}"
 fi
 
+# Check if required directories exist
+echo -e "${BLUE}Checking required directories...${NC}"
+
+if [ ! -d "$PROJECT_DIR/aspirecloud" ]; then
+    echo -e "${RED}ERROR: ./aspirecloud directory not found${NC}"
+    echo "Please clone the AspireCloud repository:"
+    echo "  git clone https://github.com/aspirepress/AspireCloud.git aspirecloud"
+    exit 1
+fi
+
+if [ ! -d "$PROJECT_DIR/cve-labeller" ]; then
+    echo -e "${RED}ERROR: ./cve-labeller directory not found${NC}"
+    echo "Please clone the CVE Labeller repository:"
+    echo "  git clone git@github.com:fairpm/cve-labeller.git cve-labeller"
+    exit 1
+fi
+
+if [ ! -d "$PROJECT_DIR/fair-plugin" ]; then
+    echo -e "${YELLOW}WARNING: ./fair-plugin directory not found${NC}"
+    echo "Clone it to enable local plugin development:"
+    echo "  git clone https://github.com/fairpm/fair-plugin.git fair-plugin"
+    echo ""
+fi
+
+echo -e "${GREEN}✓ Required directories found${NC}"
+echo ""
+
 # Initialize AspireCloud
 echo -e "${BLUE}Initializing AspireCloud application...${NC}"
 bash "$SCRIPT_DIR/init-aspirecloud.sh"
 echo ""
+
+# Wait for CVE Labeller database to be ready
+echo -e "${BLUE}Waiting for CVE Labeller database to be ready...${NC}"
+timeout 60 bash -c 'until docker exec cloudfest-cve-labeller-db pg_isready -U postgres > /dev/null 2>&1; do sleep 2; done' || {
+    echo -e "${RED}CVE Labeller database failed to start${NC}"
+    exit 1
+}
+
+# Initialize CVE Labeller
+echo -e "${BLUE}Initializing CVE Labeller application...${NC}"
+bash "$SCRIPT_DIR/init-cve-labeller.sh"
+echo ""
+
+# Initialize FAIR Plugin if it exists
+if [ -d "$PROJECT_DIR/fair-plugin" ]; then
+    echo -e "${BLUE}Initializing FAIR Plugin...${NC}"
+    bash "$SCRIPT_DIR/init-fair-plugin.sh"
+    echo ""
+fi
 
 # Start WordPress environment
 echo -e "${BLUE}Starting WordPress environment...${NC}"
@@ -80,6 +126,10 @@ echo ""
 echo "AspireCloud:"
 echo "  - API: https://api.aspiredev.local"
 echo "  - Direct: http://localhost:8099"
+echo ""
+echo "CVE Labeller:"
+echo "  - API: https://api.cve-labeller.local"
+echo "  - Direct: http://localhost:8199"
 echo ""
 echo "Development Tools:"
 echo "  - Mailhog: https://mail.aspiredev.local (or http://localhost:8025)"
