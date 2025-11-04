@@ -1,0 +1,283 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Service Registry - Central catalog of all services in the hackathon environment",
+  "version": "1.0.0",
+  "updated": "2025-11-03",
+  "services": {
+    "aspirecloud": {
+      "name": "AspireCloud API",
+      "description": "WordPress package mirror API (plugins, themes, core)",
+      "team": "core",
+      "status": "active",
+      "urls": {
+        "internal": "http://aspirecloud:80",
+        "external": "http://localhost:8099",
+        "https": "https://api.aspiredev.local"
+      },
+      "endpoints": {
+        "health": "http://aspirecloud:80/health",
+        "plugins": "http://aspirecloud:80/plugins/info/1.1/",
+        "themes": "http://aspirecloud:80/themes/info/1.1/"
+      },
+      "technology": "Laravel 11 (PHP 8.3)",
+      "documentation": "https://github.com/aspirepress/aspirecloud"
+    },
+    "wordpress": {
+      "name": "WordPress",
+      "description": "WordPress installation for testing FAIR plugin",
+      "team": "core",
+      "status": "active",
+      "urls": {
+        "external": "http://localhost:8888",
+        "admin": "http://localhost:8888/wp-admin"
+      },
+      "credentials": {
+        "username": "admin",
+        "password": "password"
+      },
+      "technology": "WordPress (latest)",
+      "plugins": [
+        "aspirepress-plugin-manager (FAIR)",
+        "woocommerce"
+      ]
+    },
+    "redis": {
+      "name": "Redis Cache",
+      "description": "Shared cache and pub/sub messaging",
+      "team": "core",
+      "status": "active",
+      "urls": {
+        "internal": "redis:6379",
+        "external": "localhost:6379"
+      },
+      "technology": "Redis 7 Alpine",
+      "databases": {
+        "0": "AspireCloud cache",
+        "1": "Team services cache",
+        "2": "Vulnerability scanner",
+        "3": "Repository monitor",
+        "4": "Policy engine"
+      },
+      "channels": {
+        "packages": "channel:packages",
+        "scans": "channel:scans",
+        "policies": "channel:policies",
+        "events": "channel:events"
+      }
+    },
+    "postgres": {
+      "name": "PostgreSQL Database",
+      "description": "AspireCloud package metadata storage",
+      "team": "core",
+      "status": "active",
+      "urls": {
+        "internal": "cloudfest-aspirecloud-db:5432",
+        "external": "localhost:5432"
+      },
+      "credentials": {
+        "username": "postgres",
+        "password": "password",
+        "database": "aspirecloud"
+      },
+      "technology": "PostgreSQL 16 Alpine"
+    },
+    "traefik": {
+      "name": "Traefik Reverse Proxy",
+      "description": "HTTP/HTTPS routing with automatic SSL",
+      "team": "core",
+      "status": "active",
+      "urls": {
+        "dashboard": "http://localhost:8090"
+      },
+      "technology": "Traefik 3.x"
+    },
+    "mailhog": {
+      "name": "Mailhog",
+      "description": "Email testing service",
+      "team": "core",
+      "status": "active",
+      "urls": {
+        "web": "http://localhost:8025",
+        "smtp": "mailhog:1025"
+      },
+      "technology": "Mailhog"
+    },
+    "adminer": {
+      "name": "Adminer",
+      "description": "Database management UI",
+      "team": "core",
+      "status": "active",
+      "urls": {
+        "external": "http://localhost:8080"
+      },
+      "technology": "Adminer"
+    },
+    "hello-world-api": {
+      "name": "Hello World API",
+      "description": "Example PHP service demonstrating integration patterns",
+      "team": "example",
+      "status": "example",
+      "urls": {
+        "internal": "http://hello-world-api:80",
+        "external": "http://localhost:8100"
+      },
+      "endpoints": {
+        "health": "http://hello-world-api:80/health",
+        "version": "http://hello-world-api:80/version",
+        "hello": "http://hello-world-api:80/api/hello",
+        "redis_test": "http://hello-world-api:80/api/redis/test",
+        "aspirecloud_test": "http://hello-world-api:80/api/aspirecloud/test"
+      },
+      "technology": "PHP 8.3 + Nginx",
+      "documentation": "services/examples/hello-world-api/README.md"
+    }
+  },
+  "teams": {
+    "backend": {
+      "name": "Backend/API Team",
+      "description": "Vulnerability scanning and repository monitoring",
+      "port_range": "8100-8199",
+      "compose_file": "docker-compose.backend.yml",
+      "services": [],
+      "responsibilities": [
+        "Repository monitoring service",
+        "Vulnerability scanner (PatchStack integration)",
+        "Package metadata caching",
+        "API endpoints for frontend"
+      ]
+    },
+    "frontend": {
+      "name": "Frontend/Dashboard Team",
+      "description": "User interface and visualization",
+      "port_range": "8200-8299",
+      "compose_file": "docker-compose.frontend.yml",
+      "services": [],
+      "responsibilities": [
+        "Dashboard UI",
+        "Admin portal",
+        "Data visualization",
+        "Policy configuration interface"
+      ]
+    },
+    "policy": {
+      "name": "Policy/Security Team",
+      "description": "Security policy engine and enforcement",
+      "port_range": "8300-8399",
+      "compose_file": "docker-compose.policy.yml",
+      "services": [],
+      "responsibilities": [
+        "Policy engine",
+        "Risk evaluation",
+        "FAIR repository labeling",
+        "Moderation decisions"
+      ]
+    }
+  },
+  "external_apis": {
+    "patchstack": {
+      "name": "PatchStack Vulnerability Database",
+      "description": "WordPress vulnerability data API",
+      "url": "https://vdp-api.patchstack.com/api/sysadmin/v2/reports/vuln/hackathon",
+      "authentication": "Bearer token (in .env)",
+      "documentation": "docs/patchstack-hackathon-guide.md"
+    },
+    "fair_repositories": {
+      "name": "FAIR Package Repositories",
+      "description": "Decentralized WordPress package repositories",
+      "protocol": "AT Protocol (DIDs + Ed25519 signatures)",
+      "documentation": "docs/fair-pm-hackathon-guide.md"
+    }
+  },
+  "communication_patterns": {
+    "http_rest": {
+      "description": "Synchronous HTTP REST API calls",
+      "examples": [
+        "Service → AspireCloud: GET http://aspirecloud:80/plugins/info/1.1/",
+        "Service → PatchStack: POST https://vdp-api.patchstack.com/...",
+        "Frontend → Backend: GET http://vuln-scanner:8100/api/status"
+      ]
+    },
+    "redis_pubsub": {
+      "description": "Asynchronous event messaging via Redis pub/sub",
+      "channels": {
+        "channel:packages": "Package discovery events",
+        "channel:scans": "Vulnerability scan results",
+        "channel:policies": "Policy decisions",
+        "channel:events": "General system events"
+      },
+      "examples": [
+        "Repository Monitor → Publishes to channel:packages",
+        "Vulnerability Scanner → Subscribes to channel:packages",
+        "Policy Engine → Publishes to channel:policies"
+      ]
+    },
+    "redis_cache": {
+      "description": "Shared cache for performance optimization",
+      "key_patterns": [
+        "plugin:{slug}:metadata - Plugin metadata cache",
+        "plugin:{slug}:{version}:vulns - Vulnerability data cache",
+        "package:{did}:info - FAIR package information"
+      ],
+      "ttl": "3600 seconds (1 hour) recommended"
+    }
+  },
+  "port_allocation": {
+    "core": {
+      "range": "8000-8099",
+      "assigned": {
+        "8080": "Adminer",
+        "8090": "Traefik Dashboard",
+        "8099": "AspireCloud",
+        "8025": "Mailhog",
+        "8888": "WordPress",
+        "8889": "WordPress Tests"
+      }
+    },
+    "backend": {
+      "range": "8100-8199",
+      "assigned": {
+        "8100": "Hello World API (example)"
+      },
+      "available": "8101-8199"
+    },
+    "frontend": {
+      "range": "8200-8299",
+      "assigned": {},
+      "available": "8200-8299"
+    },
+    "policy": {
+      "range": "8300-8399",
+      "assigned": {},
+      "available": "8300-8399"
+    }
+  },
+  "development_workflow": {
+    "add_service": [
+      "1. Create service directory: services/{team}/{service}",
+      "2. Write Dockerfile (see docs/templates/)",
+      "3. Add to docker-compose.{team}.yml",
+      "4. Update this service-registry.json",
+      "5. Start: npm run team:{team}",
+      "6. Test: curl http://localhost:{port}/health"
+    ],
+    "test_service": [
+      "External: curl http://localhost:{port}/health",
+      "Internal: docker exec {container} curl http://{service}:{port}/health"
+    ],
+    "view_logs": [
+      "Single: docker logs cloudfest-{service} -f",
+      "Team: npm run team:{team}:logs",
+      "All: npm run dev:logs"
+    ],
+    "rebuild": [
+      "docker-compose -f docker-compose.{team}.yml up -d --build {service}"
+    ]
+  },
+  "useful_commands": {
+    "list_services": "npm run services:list",
+    "inspect_network": "npm run network:inspect",
+    "test_redis": "docker exec cloudfest-redis redis-cli PING",
+    "test_postgres": "docker exec cloudfest-aspirecloud-db pg_isready -U postgres",
+    "test_aspirecloud": "curl http://localhost:8099/plugins/info/1.1/ | jq"
+  }
+}

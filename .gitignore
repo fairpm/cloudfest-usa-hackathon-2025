@@ -26,6 +26,15 @@ wp-includes/
 # ===================================
 # Docker override files (for local customization)
 docker-compose.override.yml
+docker-compose.*.local.yml
+
+# Team compose files are tracked in Git
+# Pattern: docker-compose.{team}.yml (e.g., docker-compose.backend.yml)
+# Example file: docker-compose.example.yml (always tracked)
+!docker-compose.example.yml
+!docker-compose.backend.yml
+!docker-compose.frontend.yml
+!docker-compose.policy.yml
 
 # PostgreSQL data (stored in Docker volumes)
 postgres-data/

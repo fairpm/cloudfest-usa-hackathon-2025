@@ -1,0 +1,170 @@
+# Example docker-compose file for team services
+# This demonstrates the pattern for adding your own services to the hackathon environment
+#
+# Usage:
+#   docker-compose -f docker-compose.yml -f docker-compose.example.yml up -d
+#
+# Or copy this file and customize:
+#   cp docker-compose.example.yml docker-compose.{yourteam}.yml
+#   # Edit docker-compose.{yourteam}.yml with your services
+#   docker-compose -f docker-compose.yml -f docker-compose.{yourteam}.yml up -d
+
+version: '3.8'
+
+services:
+  # Example PHP service with Nginx
+  hello-world-api:
+    build:
+      context: ./services/examples/hello-world-api
+      dockerfile: Dockerfile
+    container_name: cloudfest-hello-world-api
+    restart: unless-stopped
+    environment:
+      # Service identity
+      SERVICE_NAME: hello-world-api
+      SERVICE_PORT: 80  # Internal port (Nginx listens on 80)
+
+      # Core service URLs (use container names, not localhost)
+      ASPIRECLOUD_API_URL: http://aspirecloud:80
+      REDIS_URL: redis://redis:6379/1  # /1 uses Redis DB 1
+
+      # Application settings
+      APP_ENV: ${APP_ENV:-local}
+      APP_DEBUG: ${APP_DEBUG:-true}
+      LOG_LEVEL: ${LOG_LEVEL:-debug}
+
+      # Optional: PatchStack API (if needed)
+      PATCHSTACK_API_TOKEN: ${PATCHSTACK_API_TOKEN:-}
+      PATCHSTACK_API_URL: ${PATCHSTACK_API_URL:-}
+    ports:
+      - "8100:80"  # Map host:8100 to container:80
+    networks:
+      - cloudfest-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    depends_on:
+      - redis
+      - aspirecloud
+    labels:
+      # Traefik labels (for automatic HTTPS routing)
+      - "traefik.enable=true"
+      - "traefik.http.routers.hello-world.rule=Host(`hello-world.aspiredev.local`)"
+      - "traefik.http.routers.hello-world.entrypoints=websecure"
+      - "traefik.http.routers.hello-world.tls=true"
+      - "traefik.http.services.hello-world.loadbalancer.server.port=80"
+
+  # Example: Adding a database for your service
+  # Uncomment and customize if needed
+  #
+  # hello-world-db:
+  #   image: postgres:16-alpine
+  #   container_name: cloudfest-hello-world-db
+  #   restart: unless-stopped
+  #   environment:
+  #     POSTGRES_DB: hellodb
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: password
+  #   ports:
+  #     - "5433:5432"  # Use different port to avoid conflict with main PostgreSQL
+  #   volumes:
+  #     - hello_world_db_data:/var/lib/postgresql/data
+  #     - ./services/examples/hello-world-api/config/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+  #   networks:
+  #     - cloudfest-network
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U postgres"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+  # Example: Adding a team-specific Redis instance
+  # Uncomment and customize if needed
+  #
+  # hello-world-redis:
+  #   image: redis:7-alpine
+  #   container_name: cloudfest-hello-world-redis
+  #   restart: unless-stopped
+  #   command: redis-server --appendonly yes
+  #   ports:
+  #     - "6380:6379"  # Different port to avoid conflict with main Redis
+  #   volumes:
+  #     - hello_world_redis_data:/data
+  #   networks:
+  #     - cloudfest-network
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "ping"]
+  #     interval: 10s
+  #     timeout: 3s
+  #     retries: 5
+
+  # Example: Node.js service
+  # Uncomment and customize for Node.js/TypeScript services
+  #
+  # my-nodejs-service:
+  #   build:
+  #     context: ./services/your-team/my-nodejs-service
+  #     dockerfile: Dockerfile
+  #   container_name: cloudfest-my-nodejs-service
+  #   restart: unless-stopped
+  #   environment:
+  #     NODE_ENV: development
+  #     SERVICE_NAME: my-nodejs-service
+  #     SERVICE_PORT: 3000
+  #     ASPIRECLOUD_API_URL: http://aspirecloud:80
+  #     REDIS_URL: redis://redis:6379/2
+  #     DATABASE_URL: postgresql://postgres:password@my-nodejs-db:5432/mydb
+  #   ports:
+  #     - "8101:3000"
+  #   networks:
+  #     - cloudfest-network
+  #   volumes:
+  #     - ./services/your-team/my-nodejs-service:/app  # Mount for hot reload
+  #     - /app/node_modules  # Exclude node_modules from mount
+  #   command: npm run dev  # Use dev script with hot reload
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+
+  # Example: Python service
+  # Uncomment and customize for Python/Flask/FastAPI services
+  #
+  # my-python-service:
+  #   build:
+  #     context: ./services/your-team/my-python-service
+  #     dockerfile: Dockerfile
+  #   container_name: cloudfest-my-python-service
+  #   restart: unless-stopped
+  #   environment:
+  #     PYTHONUNBUFFERED: 1
+  #     SERVICE_NAME: my-python-service
+  #     SERVICE_PORT: 8000
+  #     ASPIRECLOUD_API_URL: http://aspirecloud:80
+  #     REDIS_URL: redis://redis:6379/3
+  #   ports:
+  #     - "8102:8000"
+  #   networks:
+  #     - cloudfest-network
+  #   command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+
+# Networks
+networks:
+  cloudfest-network:
+    external: true  # IMPORTANT: Always set to true to use the shared network
+
+# Volumes (for databases, caches, etc.)
+# volumes:
+#   hello_world_db_data:
+#     driver: local
+#   hello_world_redis_data:
+#     driver: local

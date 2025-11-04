@@ -20,7 +20,21 @@
     "wp:cli": "wp-env run cli wp",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
-    "docker:logs": "docker-compose logs -f"
+    "docker:logs": "docker-compose logs -f",
+    "team:example": "docker-compose -f docker-compose.yml -f docker-compose.example.yml up -d",
+    "team:example:down": "docker-compose -f docker-compose.yml -f docker-compose.example.yml down",
+    "team:example:logs": "docker-compose -f docker-compose.yml -f docker-compose.example.yml logs -f",
+    "team:backend": "docker-compose -f docker-compose.yml -f docker-compose.backend.yml up -d",
+    "team:backend:down": "docker-compose -f docker-compose.yml -f docker-compose.backend.yml down",
+    "team:backend:logs": "docker-compose -f docker-compose.yml -f docker-compose.backend.yml logs -f",
+    "team:frontend": "docker-compose -f docker-compose.yml -f docker-compose.frontend.yml up -d",
+    "team:frontend:down": "docker-compose -f docker-compose.yml -f docker-compose.frontend.yml down",
+    "team:frontend:logs": "docker-compose -f docker-compose.yml -f docker-compose.frontend.yml logs -f",
+    "team:policy": "docker-compose -f docker-compose.yml -f docker-compose.policy.yml up -d",
+    "team:policy:down": "docker-compose -f docker-compose.yml -f docker-compose.policy.yml down",
+    "team:policy:logs": "docker-compose -f docker-compose.yml -f docker-compose.policy.yml logs -f",
+    "services:list": "docker ps --format 'table {{.Names}}\\t{{.Status}}\\t{{.Ports}}'",
+    "network:inspect": "docker network inspect cloudfest-network"
   },
   "devDependencies": {
     "@wordpress/env": "^10.11.0"

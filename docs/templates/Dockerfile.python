@@ -1,0 +1,119 @@
+# Python Dockerfile Template
+# Optimized for Python 3.11+ with multi-stage build
+#
+# Usage:
+#   1. Copy this file to your service directory as "Dockerfile"
+#   2. Adjust Python version and dependencies as needed
+#   3. Create requirements.txt in your service directory
+#   4. Build: docker build -t my-service .
+#   5. Run: docker run -p 8100:8000 my-service
+
+# ============================================
+# Stage 1: Builder
+# ============================================
+FROM python:3.11-alpine AS builder
+
+# Install build dependencies
+RUN apk add --no-cache \
+    gcc \
+    musl-dev \
+    postgresql-dev \
+    libffi-dev \
+    python3-dev
+
+WORKDIR /app
+
+# Copy requirements file
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir --user -r requirements.txt
+
+# ============================================
+# Stage 2: Runner (production)
+# ============================================
+FROM python:3.11-alpine AS runner
+
+# Install runtime dependencies
+RUN apk add --no-cache \
+    curl \
+    postgresql-libs \
+    libffi
+
+# Create non-root user
+RUN addgroup -g 1001 -S python && \
+    adduser -S python -u 1001 -G python
+
+WORKDIR /app
+
+# Copy Python packages from builder
+COPY --from=builder --chown=python:python /root/.local /home/python/.local
+
+# Copy application code
+COPY --chown=python:python . .
+
+# Update PATH to include local packages
+ENV PATH=/home/python/.local/bin:$PATH
+
+# Switch to non-root user
+USER python
+
+# Expose application port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=10s \
+  CMD curl -f http://localhost:8000/health || exit 1
+
+# Start the application
+# For FastAPI with Uvicorn:
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+# For Flask with Gunicorn:
+# CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "4", "app:app"]
+
+# For Django:
+# CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "4", "myproject.wsgi:application"]
+
+# ============================================
+# Example requirements.txt
+# ============================================
+# fastapi==0.109.0
+# uvicorn[standard]==0.27.0
+# pydantic==2.5.0
+# redis==5.0.1
+# psycopg2-binary==2.9.9
+# httpx==0.26.0
+# python-dotenv==1.0.0
+
+# ============================================
+# Example FastAPI app structure
+# ============================================
+# app/
+# ├── __init__.py
+# ├── main.py          # FastAPI app definition
+# ├── routers/
+# │   ├── __init__.py
+# │   └── api.py       # API routes
+# ├── models/
+# │   ├── __init__.py
+# │   └── schemas.py   # Pydantic models
+# └── services/
+#     ├── __init__.py
+#     └── external.py  # External API calls
+
+# ============================================
+# Example main.py
+# ============================================
+# from fastapi import FastAPI
+#
+# app = FastAPI(title="My Service")
+#
+# @app.get("/health")
+# async def health():
+#     return {"status": "healthy", "service": "my-service"}
+#
+# @app.get("/api/hello")
+# async def hello():
+#     return {"message": "Hello from Python!"}

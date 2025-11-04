@@ -1,0 +1,94 @@
+# Node.js Dockerfile Template
+# Optimized for production with multi-stage build
+#
+# Usage:
+#   1. Copy this file to your service directory as "Dockerfile"
+#   2. Adjust NODE_VERSION, PORT, and file paths as needed
+#   3. Build: docker build -t my-service .
+#   4. Run: docker run -p 8100:3000 my-service
+
+# ============================================
+# Stage 1: Dependencies
+# ============================================
+FROM node:20-alpine AS deps
+
+# Install system dependencies if needed
+# RUN apk add --no-cache python3 make g++  # Uncomment for native modules
+
+WORKDIR /app
+
+# Copy package files
+COPY package.json package-lock.json* ./
+
+# Install dependencies (production + dev for build stage)
+RUN npm ci
+
+# ============================================
+# Stage 2: Builder (for TypeScript/build step)
+# ============================================
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Copy dependencies from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copy source files
+COPY . .
+
+# Build the application (TypeScript, etc.)
+# Uncomment if you have a build step
+# RUN npm run build
+
+# Install only production dependencies
+RUN npm ci --production && npm cache clean --force
+
+# ============================================
+# Stage 3: Runner (production)
+# ============================================
+FROM node:20-alpine AS runner
+
+# Install curl for health checks
+RUN apk add --no-cache curl
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
+WORKDIR /app
+
+# Copy production dependencies and built files
+COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nodejs:nodejs /app/package.json ./package.json
+
+# If you have a build output directory (e.g., dist/), copy it
+# COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
+
+# Otherwise, copy source files directly
+COPY --chown=nodejs:nodejs src/ ./src/
+
+# Switch to non-root user
+USER nodejs
+
+# Expose application port
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=10s \
+  CMD curl -f http://localhost:3000/health || exit 1
+
+# Start the application
+# Adjust the command based on your package.json scripts
+CMD ["node", "src/index.js"]
+
+# Or if using TypeScript with a build step:
+# CMD ["node", "dist/index.js"]
+
+# Or using npm start:
+# CMD ["npm", "start"]
+
+# ============================================
+# Development variant
+# ============================================
+# For local development with hot reload, use this command:
+# docker run -v $(pwd)/src:/app/src -p 8100:3000 my-service npm run dev
