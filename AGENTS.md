@@ -1,6 +1,8 @@
 <!-- OPENSPEC:START -->
 # OpenSpec Instructions
 
+## ⚠️ WARNING: STALE DOCUMENTATION. ⚠️  The structure of this project and its naming conventions have changed significantly since this document was written.  Confirm any knowledge from this document with the actual source code before proceeding.   
+
 These instructions are for AI assistants working in this project.
 
 Always open `@/openspec/AGENTS.md` when the request:
