@@ -1,0 +1,20 @@
+#!/bin/bash
+here=$(dirname "$0") && source "$here"/_prelude.bash
+
+cat <<EOF
+tls:
+  stores:
+    default:
+      defaultCertificate:
+        certFile: /etc/traefik/certs/_wildcard.dev.local.crt
+        keyFile: /etc/traefik/certs/_wildcard.dev.local.crt
+
+  certificates:
+EOF
+
+for cert in $(find certs -name '*.crt')
+do
+  echo "    - certFile: /etc/traefik/$cert"
+  echo "      keyFile: /etc/traefik/${cert%.crt}.key"
+  echo ""
+done

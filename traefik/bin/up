@@ -1,0 +1,6 @@
+#!/bin/bash
+here=$(dirname "$0") && source "$here"/_prelude.bash
+
+[[ -f traefik.yaml ]] || bin/bootstrap
+
+docker compose up -d "$@"

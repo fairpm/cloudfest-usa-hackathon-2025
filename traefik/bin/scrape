@@ -1,0 +1,9 @@
+#!/bin/bash
+here=$(dirname "$0") && source "$here"/_prelude.bash
+
+[[ -n ${DANGEROUSLY_ALLOW_SCRAPE:-} ]] || die "DANGEROUSLY_ALLOW_SCRAPE not set -- aborted"
+
+bin/down
+rm -rf traefik.yaml certs traefik-config.d
+bin/bootstrap
+bin/up
