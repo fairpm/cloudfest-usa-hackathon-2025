@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+here=$(dirname "$0") && source "$here"/prelude.bash
+
+project=${1:-}
+[[ -n $project ]] || die "Usage: $0 <project>"
+shift
+
+cd projects/"$project"
+
+case $project in
+  aspirecloud|aspiresync)
+    make init
+    ;;
+  fair-plugin) ;;
+  cve-labeller) ;;
+  fair-policy-engine) ;;
+esac
