@@ -7,6 +7,7 @@ start: checkout \
     (_start 'cve-labeller') \
     (_start 'fair-policy-engine') \
     (_start 'fair-plugin') \
+    (_start 'fair-beacon')
 
 # this would be ideal, but we're not there yet
 # start repo:

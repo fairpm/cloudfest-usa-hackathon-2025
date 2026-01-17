@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-
 here=$(dirname "$0") && source "$here"/prelude.bash
+
+# Eventually all projects should have a Justfile that understands 'just start' and this script will go away.
 
 project=${1:-}
 [[ -n $project ]] || die "Usage: $0 <project>"
@@ -12,7 +13,14 @@ case $project in
   aspirecloud|aspiresync)
     make init
     ;;
-  fair-plugin) ;;
-  cve-labeller) ;;
-  fair-policy-engine) ;;
+  cve-labeller)
+    # cve-labeller needs a docker-compose.yml of its own that integrates into AC's services
+    ;;
+  fair-beacon)
+    composer install
+    ;;
+  fair-plugin|fair-policy-engine)
+    # these plugins don't require any setup, but we'll want a wp instance to host them
+    # either as a repo on its own, or built into start-here.
+    ;;
 esac
