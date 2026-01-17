@@ -3,6 +3,8 @@
 here=$(dirname "$0") && source "$here"/prelude.bash
 
 repo=$(repo_url "${1:-}") || die "Usage: $0 <repo-name-or-url>"
+shift
+
 base=$(basename "$repo")
 
 mkdir -p projects
