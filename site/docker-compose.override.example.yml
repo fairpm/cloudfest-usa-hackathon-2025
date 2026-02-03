@@ -1,0 +1,11 @@
+services:
+    fairpm-wordpress:
+#        volumes:
+#            - ./docker/fairpm-wordpress/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
+
+        ports:
+            - "${LOCAL_WEB_PORT:-8080}:80"
+
+    fairpm-db:
+        ports:
+            - "${LOCAL_DB_PORT:-3306}:3306"

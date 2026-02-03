@@ -1,0 +1,32 @@
+#### ignore all dotfiles and dot-dirs, with exceptions
+.*
+!.config/
+!.distignore
+!.dockerignore
+!.editorconfig
+!.env.example
+!.gitattributes
+!.gitignore
+
+#### ignore these patterns
+*.bak
+*.log
+*.tmp
+*.local
+*.local.*
+*.secret
+*.secret.*
+
+!php.local.ini
+
+#### ignore these specific directories
+/gp-data/
+/vendor/
+
+#### ignore these specific files
+
+auth.json
+docker-compose.override.yml
+
+# many dependencies in composer.json are symlinks, so the lockfile is meaningless
+composer.lock

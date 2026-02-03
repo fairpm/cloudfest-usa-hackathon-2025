@@ -13,7 +13,8 @@ start: prereqs checkout \
     (_start 'cve-labeller') \
     (_start 'fair-policy-engine') \
     (_start 'fair-plugin') \
-    (_start 'fair-beacon')
+    (_start 'fair-beacon') \
+    (_start 'fair-explorer')
 
 # this would be ideal, but we're not there yet
 # start repo:
@@ -28,7 +29,8 @@ checkout: \
     (_checkout 'cve-labeller') \
     (_checkout 'fair-policy-engine') \
     (_checkout 'fair-plugin') \
-    (_checkout 'fair-beacon')
+    (_checkout 'fair-beacon') \
+    (_checkout 'fair-explorer')
 
 _checkout repo:
     meta/bin/checkout-fair-project {{repo}}
