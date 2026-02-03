@@ -1,0 +1,6 @@
+docker-compose.override.yml
+traefik.yaml
+*.local.yaml
+
+certs/
+tmp/

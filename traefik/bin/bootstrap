@@ -1,0 +1,21 @@
+#!/bin/bash
+here=$(dirname "$0") && source "$here"/_prelude.bash
+
+require_command docker
+require_command mkcert mkcert
+
+docker network create "$TRAEFIK_PROXY_NETWORK" >/dev/null 2>&1 || true
+mkcert -install
+
+bin/make-certs
+
+# if traefik.yaml is deleted while traefik is running, docker creates a local directory for the bind mount.  zap it.
+[[ -d traefik.yaml ]] && rmdir traefik.yaml
+
+[[ -f traefik.yaml ]] || eval "cat <<EOF
+$(<traefik.template.yaml)
+EOF
+" > traefik.yaml
+
+mkdir -p traefik-config.d
+bin/make-tls-config >> traefik-config.d/tls.local.yaml

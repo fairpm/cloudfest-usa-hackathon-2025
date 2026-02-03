@@ -1,0 +1,12 @@
+#!/bin/bash
+here=$(dirname "$0") && source "$here"/_prelude.bash
+
+if [[ -z "${NO_BUILD:-}" ]]
+then
+    docker network create traefik  >/dev/null 2>&1 || true
+    docker network create fair-net >/dev/null 2>&1 || true
+    docker compose build
+    [[ -e composer.lock ]] || composer update
+fi
+
+docker compose up -d "$@"

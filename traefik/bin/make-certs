@@ -1,0 +1,18 @@
+#!/bin/bash
+here=$(dirname "$0") && source "$here"/_prelude.bash
+
+require_command mkcert mkcert
+
+mkdir -p certs
+cd certs
+
+# *.local is for compatibility, but not recommended since browsers will refuse to accept it permanently.
+wildcard_domains=${TRAEFIK_WILDCARD_DOMAINS:-dev.local local}
+
+for domain in $wildcard_domains
+do
+  filename="_wildcard.$domain"
+  [[ -f "${filename}.crt" ]] && continue
+  mkcert -cert-file "${filename}.crt" -key-file "${filename}.key" $domain "*.$domain"
+done
+

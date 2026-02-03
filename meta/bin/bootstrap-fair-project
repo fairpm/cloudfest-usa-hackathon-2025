@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+here=$(dirname "$0") && source "$here"/prelude.bash
+
+# Eventually all projects should have a justfile that understands 'just start' and this script will go away.
+
+project=${1:-}
+[[ -n $project ]] || die "Usage: $0 <project>"
+shift
+
+cd projects/"$project"
+
+if [[ -f justfile ]]; then
+  just start
+  exit 0
+fi
+
+# no justfile found, so do any special handling here
+
+case $project in
+  cve-labeller)
+    # TODO: cve-labeller needs a docker-compose.yml of its own that integrates into AC's services
+    ;;
+  fair-beacon)
+    composer install
+    ;;
+esac

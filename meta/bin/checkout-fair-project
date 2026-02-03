@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+here=$(dirname "$0") && source "$here"/prelude.bash
+
+repo=$(repo_url "${1:-}") || die "Usage: $0 <repo-name-or-url>"
+shift
+
+base=$(basename "$repo")
+
+mkdir -p projects
+cd projects
+
+dest=$(pwd)/$base
+
+if [[ -d $base ]]; then
+  cd "$base"
+  git pull
+  echo "Successfully updated $repo in $dest"
+else
+  git clone "$repo" "$@"
+  echo "Successfully cloned $repo to $dest"
+fi
+
+if [[ -n ${NO_INSTALL_HOOK:-} ]] && ! [[ -e "$dest"/.git/hooks/prepare-commit-msg ]]; then
+  cp -v ../meta/bin/git-signoff-hook "$dest"/.git/hooks/prepare-commit-msg
+fi
+
