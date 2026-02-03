@@ -1,7 +1,13 @@
 _default:
     @just --list
 
-start: checkout \
+
+prereqs:
+    @# many services assume the traefik network exists even if you're not running traefik
+    -docker network create fair-net >/dev/null 2>&1
+    -docker network create traefik >/dev/null 2>&1
+
+start: prereqs checkout \
     (_start 'aspirecloud') \
     (_start 'aspiresync') \
     (_start 'cve-labeller') \

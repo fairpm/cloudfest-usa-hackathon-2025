@@ -19,6 +19,9 @@ if [[ -d $base ]]; then
 else
   git clone "$repo" "$@"
   echo "Successfully cloned $repo to $dest"
-  [[ -n ${NO_INSTALL_HOOK:-} ]] || cp -v ../meta/bin/git-signoff-hook "$dest"/.git/hooks/prepare-commit-msg
+fi
+
+if [[ -n ${NO_INSTALL_HOOK:-} ]] && ! [[ -e "$dest"/.git/hooks/prepare-commit-msg ]]; then
+  cp -v ../meta/bin/git-signoff-hook "$dest"/.git/hooks/prepare-commit-msg
 fi
 
